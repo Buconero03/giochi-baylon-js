@@ -1,152 +1,128 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { GameCanvas } from './components/GameCanvas';
-import { GameState } from './types';
-import { Trophy, Skull, Play, Timer, Coins, Flag } from 'lucide-react';
+import React, { useState } from 'react';
+import NeonVelocityGame from './games/NeonVelocityGame';
 
-export default function App() {
-  const [gameState, setGameState] = useState<GameState>(GameState.MENU);
-  const [score, setScore] = useState<number>(0);
-  const [timeLeft, setTimeLeft] = useState<number>(300);
-  const [currentLevel, setCurrentLevel] = useState<number>(1);
-  
-  // Ref to the game engine to reset it
-  const restartGameRef = useRef<() => void>(() => {});
+type GameId = 'menu' | 'neon';
 
-  const handleGameStateChange = useCallback((newState: GameState) => {
-    setGameState(newState);
-  }, []);
+const App: React.FC = () => {
+  const [currentGame, setCurrentGame] = useState<GameId>('menu');
 
-  const handleScoreUpdate = useCallback((newCoins: number) => {
-    setScore(newCoins);
-  }, []);
+  if (currentGame === 'neon') {
+    return (
+      <div className="w-screen h-screen bg-slate-950 text-white">
+        <div className="absolute top-3 left-3 z-50">
+          <button
+            onClick={() => setCurrentGame('menu')}
+            className="px-3 py-1 rounded-full bg-slate-900/80 border border-slate-500 text-xs hover:bg-slate-800"
+          >
+            ← Torna al menu giochi
+          </button>
+        </div>
 
-  const handleTimeUpdate = useCallback((time: number) => {
-    setTimeLeft(Math.round(time));
-  }, []);
-  
-  const handleLevelUpdate = useCallback((level: number) => {
-    setCurrentLevel(level);
-  }, []);
-
-  const startGame = () => {
-    setGameState(GameState.PLAYING);
-    setScore(0);
-    setCurrentLevel(1);
-    restartGameRef.current();
-  };
-
-  return (
-    <div className="relative w-full h-full font-sans select-none text-white">
-      {/* Game Viewport */}
-      <div className="absolute inset-0 z-0 bg-sky-400">
-        <GameCanvas 
-          gameState={gameState} 
-          onGameStateChange={handleGameStateChange}
-          onScoreUpdate={handleScoreUpdate}
-          onTimeUpdate={handleTimeUpdate}
-          onLevelUpdate={handleLevelUpdate}
-          onRestart={(fn) => { restartGameRef.current = fn; }}
-        />
+        <NeonVelocityGame />
       </div>
+    );
+  }
 
-      {/* UI Overlay */}
-      <div className="absolute inset-0 z-10 pointer-events-none">
-        
-        {/* HUD - Only visible when playing */}
-        {gameState === GameState.PLAYING && (
-          <div className="p-6 flex justify-between items-start w-full max-w-6xl mx-auto">
-            <div className="flex gap-4">
-              <div className="bg-black/60 backdrop-blur-md text-yellow-400 px-5 py-3 rounded-2xl flex items-center gap-3 border-2 border-yellow-400/30 shadow-lg">
-                <Coins size={28} className="drop-shadow-glow" />
-                <span className="text-3xl font-black tracking-tighter">{score}</span>
-              </div>
-              <div className="bg-black/60 backdrop-blur-md text-white px-5 py-3 rounded-2xl flex items-center gap-3 border-2 border-white/20 shadow-lg">
-                <Timer size={28} />
-                <span className={`text-3xl font-black tracking-tighter ${timeLeft < 50 ? 'text-red-500 animate-pulse' : ''}`}>
-                  {timeLeft}
-                </span>
-              </div>
+  // MENU PRINCIPALE
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100 px-4">
+      <div className="max-w-4xl w-full bg-slate-900/90 rounded-2xl border border-slate-700 shadow-2xl p-6 md:p-8">
+        <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-400 via-sky-400 to-fuchsia-500 flex items-center justify-center text-slate-950 font-extrabold text-lg shadow-lg">
+              GX
             </div>
-            <div className="bg-black/60 backdrop-blur-md text-white px-6 py-3 rounded-2xl border-2 border-white/20 shadow-lg flex items-center gap-3">
-               <Flag size={24} className="text-green-400" />
-               <span className="text-xl font-black tracking-wider">WORLD 1-{currentLevel}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Main Menu */}
-        {gameState === GameState.MENU && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm pointer-events-auto">
-            <div className="text-center bg-white p-10 rounded-[2rem] shadow-2xl max-w-lg w-full border-8 border-blue-500 transform transition-all">
-              <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-700 mb-2 drop-shadow-sm leading-tight">
-                SUPER<br/>BABYLON
+            <div>
+              <h1 className="text-xl md:text-2xl tracking-[0.2em] uppercase font-semibold">
+                GameX Arcade
               </h1>
-              <div className="text-2xl font-bold text-blue-600 mb-8 tracking-widest">ODYSSEY</div>
-              
-              <div className="bg-gray-100 p-6 rounded-xl mb-8 text-left space-y-2 border-2 border-gray-200">
-                <p className="text-gray-600 font-bold flex items-center gap-2"><span className="bg-gray-800 text-white px-2 rounded">WASD</span> or <span className="bg-gray-800 text-white px-2 rounded">Arrows</span> to Move</p>
-                <p className="text-gray-600 font-bold flex items-center gap-2"><span className="bg-red-500 text-white px-3 rounded">SPACE</span> to Jump (Hold for higher)</p>
-              </div>
-
-              <button 
-                onClick={startGame}
-                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-3xl font-black py-5 px-8 rounded-2xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 shadow-[0_6px_0_rgb(153,27,27)] active:shadow-none active:translate-y-1.5"
-              >
-                <Play fill="currentColor" size={32} /> START GAME
-              </button>
+              <p className="text-xs text-slate-400">
+                Portale con i miei giochi browser
+              </p>
             </div>
           </div>
-        )}
+          <span className="text-[0.7rem] uppercase tracking-[0.2em] px-3 py-1 rounded-full border border-slate-500/70 bg-slate-900/70">
+            Beta · 1 gioco su 50
+          </span>
+        </header>
 
-        {/* Game Over */}
-        {gameState === GameState.GAME_OVER && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/90 backdrop-blur-md pointer-events-auto">
-             <div className="text-center bg-gray-900 p-10 rounded-3xl shadow-2xl max-w-md w-full border-4 border-red-600 text-white animate-bounce-short">
-              <Skull className="w-24 h-24 mx-auto text-red-500 mb-6" />
-              <h2 className="text-6xl font-black text-red-500 mb-2 tracking-tight">DIED</h2>
-              <p className="text-gray-400 mb-8 text-xl font-medium">Lives Remaining: 0</p>
-              <button 
-                onClick={startGame}
-                className="w-full bg-white text-black hover:bg-gray-200 text-2xl font-bold py-4 px-8 rounded-xl transition-transform hover:scale-105 active:scale-95 shadow-[0_4px_0_rgb(156,163,175)] active:shadow-none active:translate-y-1"
+        <p className="text-sm md:text-base text-slate-200 mb-5 leading-relaxed">
+          Questo è il mio sito con più giochi. Per ora c&apos;è solo
+          <span className="text-emerald-400 font-semibold"> Neon Velocity</span>,
+          un gioco di corse 3D. In futuro aggiungerò altri titoli (arcade, puzzle, ecc.).
+        </p>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* Card Neon Velocity */}
+          <article className="bg-slate-950/80 border border-slate-700 rounded-xl p-4 flex flex-col justify-between shadow-lg">
+            <div>
+              <h2 className="text-sm font-semibold mb-1">
+                Neon Velocity: Underground
+              </h2>
+              <p className="text-[0.8rem] text-slate-400 mb-2">
+                Corse 3D · BabylonJS · Tastiera
+              </p>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-[0.7rem] px-2 py-[2px] rounded-full border border-emerald-400/80 text-emerald-300 uppercase tracking-[0.15em]">
+                Già giocabile
+              </span>
+              <button
+                onClick={() => setCurrentGame('neon')}
+                className="px-3 py-1 rounded-full bg-emerald-400 text-slate-950 text-xs font-semibold hover:brightness-110"
               >
-                TRY AGAIN
+                Gioca ora 🚗
               </button>
             </div>
-          </div>
-        )}
+          </article>
 
-        {/* Victory */}
-        {gameState === GameState.VICTORY && (
-          <div className="absolute inset-0 flex items-center justify-center bg-yellow-500/90 backdrop-blur-md pointer-events-auto">
-             <div className="text-center bg-white p-10 rounded-3xl shadow-2xl max-w-lg w-full border-8 border-yellow-300">
-              <Trophy className="w-24 h-24 mx-auto text-yellow-500 mb-4 drop-shadow-lg" />
-              <h2 className="text-5xl font-black text-yellow-500 mb-2">YOU WIN!</h2>
-              <p className="text-gray-400 font-bold tracking-widest uppercase mb-6">All 10 Levels Cleared</p>
-              <div className="my-8 space-y-3 bg-yellow-50 p-6 rounded-xl border border-yellow-100">
-                <div className="text-xl font-bold text-gray-800 flex justify-between">
-                  <span>Coins Collected:</span>
-                  <span>{score}</span>
-                </div>
-                <div className="text-xl font-bold text-gray-800 flex justify-between">
-                  <span>Time Bonus:</span>
-                  <span>{timeLeft * 50}</span>
-                </div>
-                <div className="h-px bg-yellow-200 my-2"></div>
-                <div className="text-4xl font-black text-green-600 pt-1 flex justify-between">
-                  <span>Total:</span>
-                  <span>{score * 100 + timeLeft * 50}</span>
-                </div>
-              </div>
-              <button 
-                onClick={startGame}
-                className="w-full bg-green-500 hover:bg-green-600 text-white text-2xl font-bold py-5 px-8 rounded-xl transition-transform hover:scale-105 active:scale-95 shadow-[0_6px_0_rgb(21,128,61)] active:shadow-none active:translate-y-1.5"
-              >
-                PLAY AGAIN
-              </button>
+          {/* Slot gioco 2 */}
+          <article className="bg-slate-950/40 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between opacity-70">
+            <div>
+              <h2 className="text-sm font-semibold mb-1">
+                Gioco 2 (in arrivo)
+              </h2>
+              <p className="text-[0.8rem] text-slate-400 mb-2">
+                Arcade 2D · HTML5 Canvas
+              </p>
             </div>
-          </div>
-        )}
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-[0.7rem] px-2 py-[2px] rounded-full border border-amber-300/80 text-amber-200 uppercase tracking-[0.15em]">
+                In sviluppo
+              </span>
+              <span className="text-[0.75rem] text-slate-500">
+                Coming soon…
+              </span>
+            </div>
+          </article>
+
+          {/* Slot gioco 3 */}
+          <article className="bg-slate-950/40 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between opacity-70">
+            <div>
+              <h2 className="text-sm font-semibold mb-1">
+                Gioco 3 (idea)
+              </h2>
+              <p className="text-[0.8rem] text-slate-400 mb-2">
+                Puzzle · Mouse / Touch
+              </p>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-[0.7rem] px-2 py-[2px] rounded-full border border-orange-400/80 text-orange-200 uppercase tracking-[0.15em]">
+                Idea
+              </span>
+              <span className="text-[0.75rem] text-slate-500">
+                In progettazione…
+              </span>
+            </div>
+          </article>
+        </div>
+
+        <p className="mt-4 text-[0.75rem] text-right text-slate-500">
+          Prototipo portale interno · Questo stesso sito ospiterà più giochi.
+        </p>
       </div>
     </div>
   );
-}
+};
+
+export default App;
